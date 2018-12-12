@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/argcv/webeh/log"
+	"github.com/argcv/stork/log"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -98,7 +98,7 @@ func main() {
 			listenStr := fmt.Sprintf(":%v", port)
 			log.Infof("Listening: %v", listenStr)
 			log.Infof("Default File: %v", defaultFile)
-			r.Run(listenStr) // listen and serve on 0.0.0.0:8080
+			err = r.Run(listenStr) // listen and serve on 0.0.0.0:8080
 
 			return
 		},
