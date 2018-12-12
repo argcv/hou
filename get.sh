@@ -13,7 +13,7 @@ ORG_DIR="$GOPATH/src/github.com/$ORG_NAME"
 PROJ_DIR="$ORG_DIR/$PROJ_NAME"
 
 if [ -d $PROJ_DIR ]; then
-  echo "error: project is exists!!"
+  echo "error: project already exists!!"
   exit 2
 fi
 
