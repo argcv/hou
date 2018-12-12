@@ -50,7 +50,7 @@ Recently, I prepared a small script based on golang.  It will do the similar job
 If you just wish to use it. Please just use the following command:
 
 ```bash
-go get -v github.com/yuikns/hou
+go get -v github.com/argcv/hou
 ```
 
 If you wish to make contributions to the repo. You can use the following script.

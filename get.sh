@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Config
-ORG_NAME='yuikns'
+ORG_NAME='argcv'
 PROJ_NAME='hou'
 
 if [ -z $GOPATH ]; then
