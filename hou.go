@@ -76,7 +76,7 @@ func main() {
 
 			r := gin.Default()
 
-			r.GET("/*file", func(c *gin.Context) {
+			r.Any("/*file", func(c *gin.Context) {
 				file := path.Clean(path.Join(".", path.Clean(c.Param("file"))))
 				log.Debugf("Requested Path: %s", file)
 				fileIn := IsValidFile(indexFile, file, defaultFile)
