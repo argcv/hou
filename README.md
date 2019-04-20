@@ -63,9 +63,9 @@ curl -L https://bit.ly/2KzJeU6 | bash
 
 If you are using Chinese network, you may use aliyun's mirror: `registry.cn-zhangjiakou.aliyuncs.com/yuikns/hou`
 
-Otherwise, you may use `yuikns/hou` from [dockerhub](https://hub.docker.com/r/yuikns/hou/).
+Otherwise, you may use `argcv/hou` from [dockerhub](https://hub.docker.com/r/argcv/hou/).
 
-Since the logic is very easy and the dependencies on very few packages, this image is [only 6MB](https://hub.docker.com/r/yuikns/hou/tags/) in the current. 
+Since the logic is very easy and the dependencies on very few packages, this image is [only 6MB](https://hub.docker.com/r/argcv/hou/tags/) in the current. 
 
 #### Example of using Docker through [docker-compose](https://docs.docker.com/compose/) 
 
@@ -78,7 +78,7 @@ version: '3'
 
 services:
   hou:
-    image: yuikns/hou:latest
+    image: argcv/hou:latest
     ports:
       - 6789:6789
     restart: always
