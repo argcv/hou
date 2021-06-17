@@ -2,10 +2,11 @@ package hou
 
 import (
 	"fmt"
-	"github.com/argcv/stork/log"
-	"github.com/gin-gonic/gin"
 	"os"
 	"path"
+
+	"github.com/argcv/stork/log"
+	"github.com/gin-gonic/gin"
 )
 
 type Hou struct {
@@ -19,7 +20,7 @@ type Hou struct {
 	BodyNotFound string
 }
 
-func NewHou() *Hou {
+func New() *Hou {
 	return &Hou{
 		Basedir:      ".",
 		DefaultFile:  "index.html",

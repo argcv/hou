@@ -82,7 +82,7 @@ func main() {
 				return
 			}
 
-			h := hou.NewHou()
+			h := hou.New()
 
 			h.Basedir = baseDir
 			h.DefaultFile = defaultFile
