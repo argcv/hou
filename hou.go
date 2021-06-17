@@ -1,12 +1,15 @@
 package hou
 
 import (
+	"bytes"
 	"fmt"
+	"net/http"
 	"os"
 	"path"
 
 	"github.com/argcv/stork/log"
 	"github.com/gin-gonic/gin"
+	"github.com/olekukonko/tablewriter"
 )
 
 type Hou struct {
@@ -45,6 +48,35 @@ func (h *Hou) String() string {
 		h.Port, h.GetIndexFile(), h.DefaultFile, h.Debug, h.BodyNotFound[:lb])
 }
 
+func (h Hou) ConfigTable() string {
+	buff := bytes.NewBuffer(nil)
+
+	lb := len(h.BodyNotFound)
+	if lb > 20 {
+		lb = 20
+	}
+
+	hostname, err := os.Hostname()
+	if err != nil {
+		hostname = "127.0.0.1"
+	}
+
+	data := [][]string{
+		{"Endpoint", fmt.Sprintf("http://%s:%d", hostname, h.Port)},
+		{"Debug", fmt.Sprint(h.Debug)},
+		{"Index", h.GetIndexFile()},
+		{"Default", h.DefaultFile},
+		{"Not Found", h.BodyNotFound[:lb]},
+	}
+	table := tablewriter.NewWriter(buff)
+	table.SetHeader([]string{"option", "value"})
+	for _, v := range data {
+		table.Append(v)
+	}
+	table.Render() // Send output
+	return buff.String()
+}
+
 func (h *Hou) Run() error {
 	if h.Debug {
 		// debug mode
@@ -57,14 +89,15 @@ func (h *Hou) Run() error {
 
 	indexFile := h.GetIndexFile()
 
-	r.Any("/*file", func(c *gin.Context) {
+	r.GET("/*file", func(c *gin.Context) {
 		file := path.Clean(path.Join(h.Basedir, path.Clean(c.Param("file"))))
 		log.Debugf("Requested Path: %s", file)
 		fileIn := ScanValidFile(indexFile, file, h.DefaultFile)
 
 		if len(fileIn) > 0 {
-			c.File(fileIn)
-			//http.ServeFile(c.Writer, c.Request, fileIn)
+			//c.File(fileIn)
+			http.ServeFile(c.Writer, c.Request, fileIn)
+			//http.ServeContent(c.Writer, c.Request, "name", time.Now(), os.Open(fileIn))
 		} else {
 			c.String(404, h.BodyNotFound)
 		}

@@ -90,7 +90,7 @@ func main() {
 			h.Port = port
 			h.Debug = debug
 
-			log.Infof("Starting %v...", h)
+			log.Infof("Starting:\n%v", h.ConfigTable())
 			return h.Run()
 		},
 	}
