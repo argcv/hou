@@ -1,12 +1,14 @@
 package main
 
 import (
-	"github.com/argcv/hou"
+	"os"
+	"path"
+
 	"github.com/argcv/stork/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os"
-	"path"
+
+	"github.com/argcv/hou"
 )
 
 func IsValidFile(index string, files ...string) string {
@@ -46,7 +48,7 @@ func main() {
 
 	args := &cobra.Command{
 		Use:   "hou",
-		Short: "hou hou hou",
+		Short: "Host Objects Ultra-lightly",
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			verbose, err := cmd.Flags().GetBool("verbose")
 

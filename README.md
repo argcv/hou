@@ -39,21 +39,21 @@ server {
 }
 ```
 
-However, the steps are kind of too much.
+Therefore, we may also use another solution:
 
-## Solution: Hou
+## Solution: Hou -- Host Objects Ultra-lightly
 
 Recently, I prepared a small script based on golang.  It will do the similar job as the behavior above in Nginx, but much smaller and efficacy.
 
 ### Install or update from source
 
-If you just wish to use it. Please just use the following command:
+If you just wish to use it, please just use the following command:
 
 ```bash
 go get -v github.com/argcv/hou/cmd/hou
 ```
 
-If you wish to make contributions to the repo. You can use the following script.
+If you wish to make contributions to the repo, you can use the following script.
 
 ```bash
 curl -L https://bit.ly/2KzJeU6 | bash
