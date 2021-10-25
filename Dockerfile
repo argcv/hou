@@ -6,10 +6,11 @@ ADD . /go/src/github.com/argcv/hou
 
 RUN cd /go/src/github.com/argcv/hou && bash ./build.sh
 
-FROM scratch
+#FROM scratch
+FROM alpine
 
 # x509: failed to load system roots and no roots provided
-COPY --from=builder  /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+#COPY --from=builder  /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
 COPY --from=builder /go/src/github.com/argcv/hou/hou /hou
 
