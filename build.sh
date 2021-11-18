@@ -9,6 +9,6 @@ PLATFORM="$(uname -s | tr 'A-Z' 'a-z')"
 
 export GO111MODULE=on
 export CGO_ENABLED=0
-#GOOS=linux
-export GOOS=${PLATFORM}
-go build -a -ldflags '-extldflags "-static"' ./cmd/hou
+export GOOS=linux
+#export GOOS=${PLATFORM}
+go build -a -ldflags '-extldflags "-static" -s -w' ./cmd/hou
