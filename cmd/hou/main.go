@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"path"
 
 	"github.com/argcv/stork/log"
 	"github.com/spf13/cobra"
@@ -10,31 +9,6 @@ import (
 
 	"github.com/argcv/hou"
 )
-
-func IsValidFile(index string, files ...string) string {
-
-	log.Debugf("Scanning...")
-	for _, f := range files {
-		log.Debugf("[%v] will be checked...", f)
-	}
-	for _, f := range files {
-		log.Debugf("[%v] checking...", f)
-		if stat, err := os.Stat(f); err == nil {
-			log.Debugf("[%v] exists...", f)
-			if stat.IsDir() {
-				log.Debugf("[%v] is dir...", f)
-				sf := IsValidFile(index, path.Join(f, index))
-				if len(sf) > 0 {
-					return sf
-				}
-			} else {
-				// is file
-				return f
-			}
-		}
-	}
-	return ""
-}
 
 func main() {
 	viper.SetConfigName("hou")
@@ -59,27 +33,32 @@ func main() {
 
 			port, err := cmd.Flags().GetInt("port")
 			if err != nil {
-				return
+				return err
 			}
+
 			defaultFile, err := cmd.Flags().GetString("default")
 			if err != nil {
 				return
 			}
+
 			indexFile, err := cmd.Flags().GetString("index")
 			if len(indexFile) == 0 {
 				indexFile = defaultFile
 			}
 
 			baseDir, err := cmd.Flags().GetString("base")
-
 			if err != nil {
-				return
+				return err
 			}
 
 			debug, err := cmd.Flags().GetBool("debug")
-
 			if err != nil {
-				return
+				return err
+			}
+
+			proxy, err := cmd.Flags().GetString("proxy")
+			if err != nil {
+				return err
 			}
 
 			h := hou.New()
@@ -89,6 +68,7 @@ func main() {
 			h.IndexFile = indexFile
 			h.Port = port
 			h.Debug = debug
+			h.Proxy = proxy
 
 			log.Infof("Starting:\n%v", h.ConfigTable())
 			return h.Run()
@@ -99,6 +79,7 @@ func main() {
 	args.PersistentFlags().String("index", "", "index file")
 	args.PersistentFlags().String("base", ".", "base dir")
 	args.PersistentFlags().IntP("port", "p", 6789, "port")
+	args.PersistentFlags().String("proxy", "", "remote proxy")
 
 	args.PersistentFlags().BoolP("debug", "d", false, "debug mode")
 	args.PersistentFlags().BoolP("verbose", "v", false, "verbose log")
