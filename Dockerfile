@@ -1,10 +1,10 @@
-FROM golang:1.16 as builder
+FROM golang:1.18-alpine as builder
 
 ENV container docker
 
 ADD . /go/src/github.com/argcv/hou
 
-RUN cd /go/src/github.com/argcv/hou && bash ./build.sh
+RUN cd /go/src/github.com/argcv/hou && sh ./build.sh
 
 #FROM scratch
 FROM alpine
