@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"strings"
-	"time"
 
 	"github.com/argcv/stork/log"
 	"github.com/gin-gonic/gin"
@@ -16,11 +16,12 @@ import (
 )
 
 type Hou struct {
-	Basedir     string
-	Port        int
-	DefaultFile string
-	IndexFile   string
-	Proxy       string
+	Basedir      string
+	Port         int
+	DefaultFile  string
+	IndexFile    string
+	Proxy        string
+	ProxyHeaders map[string]string
 
 	Debug bool
 
@@ -74,11 +75,15 @@ func (h Hou) ConfigTable() string {
 		{"Not Found", h.BodyNotFound[:lb]},
 		{"Proxy", h.Proxy},
 	}
+	if len(h.ProxyHeaders) > 0 {
+		for k, v := range h.ProxyHeaders {
+			data = append(data, []string{"Proxy Headers", strings.Join([]string{k, v}, ":")})
+		}
+	}
 	table := tablewriter.NewWriter(buff)
 	table.SetHeader([]string{"option", "value"})
-	for _, v := range data {
-		table.Append(v)
-	}
+	table.SetAutoMergeCells(true)
+	table.AppendBulk(data)
 	table.Render() // Send output
 	return buff.String()
 }
@@ -86,15 +91,15 @@ func (h Hou) ConfigTable() string {
 func (h *Hou) handlerLocal(r gin.IRouter) {
 	indexFile := h.GetIndexFile()
 
-	r.GET("/*file", func(c *gin.Context) {
+	r.Any("/*file", func(c *gin.Context) {
 		file := path.Clean(path.Join(h.Basedir, path.Clean(c.Param("file"))))
 		log.Debugf("Requested Path: %s", file)
 		fileIn := ScanLocalValidFile(indexFile, file, h.DefaultFile)
 
 		if len(fileIn) > 0 {
-			//c.File(fileIn)
+			// c.File(fileIn)
 			http.ServeFile(c.Writer, c.Request, fileIn)
-			//http.ServeContent(c.Writer, c.Request, "name", time.Now(), os.Open(fileIn))
+			// http.ServeContent(c.Writer, c.Request, "name", time.Now(), os.Open(fileIn))
 		} else {
 			c.String(404, h.BodyNotFound)
 		}
@@ -102,8 +107,6 @@ func (h *Hou) handlerLocal(r gin.IRouter) {
 }
 
 func (h *Hou) handlerRemote(r gin.IRouter) {
-	indexFile := path.Clean("/" + h.GetIndexFile())
-
 	proxy := h.Proxy
 	if !strings.HasPrefix(proxy, "http://") && !strings.HasPrefix(proxy, "https://") {
 		proxy = "http://" + proxy
@@ -112,40 +115,60 @@ func (h *Hou) handlerRemote(r gin.IRouter) {
 		proxy = proxy[:len(proxy)-1]
 	}
 
-	log.Infof("using proxy %v", proxy)
-	client := &http.Client{
-		Timeout: 300 * time.Second,
+	host := ""
+	myURL, err := url.Parse(proxy)
+	if err == nil {
+		host = myURL.Host
 	}
-	r.GET("/*file", func(c *gin.Context) {
+
+	buildRequest := func(c *gin.Context, file string) *http.Request {
+		targetURL := proxy + file
+
+		// log.Infof("[%v] requesting... %v", file, targetURL)
+
+		req := c.Request.Clone(c.Request.Context())
+		req.URL, _ = url.Parse(targetURL)
+		req.RequestURI = ""
+
+		for k, v := range h.ProxyHeaders {
+			req.Header.Set(k, v)
+		}
+		if host != "" {
+			req.Host = host
+		}
+		return req
+	}
+
+	copyHeader := func(c *gin.Context, header http.Header) {
+		for k, v := range header {
+			c.Writer.Header().Del(k)
+			for _, vx := range v {
+				c.Writer.Header().Add(k, vx)
+			}
+		}
+	}
+
+	log.Infof("using proxy %v", proxy)
+	client := httpClient
+	r.Any("/*file", func(c *gin.Context) {
 		file := c.Param("file")
-		//file := path.Clean(path.Join(h.Basedir, path.Clean(c.Param("file"))))
-		url := proxy + file
-		log.Infof("[%v] requesting... %v", file, url)
-		resp, err := client.Get(url)
-		if err == nil && resp.StatusCode != 404 {
+		resp, err := client.Do(buildRequest(c, file))
+		if err == nil {
 			c.Status(resp.StatusCode)
 			defer resp.Body.Close()
+
+			copyHeader(c, resp.Header)
+
 			_, err = io.Copy(c.Writer, resp.Body)
 			if err != nil {
-				log.Errorf("request %v failed: %v", url, err)
+				log.Errorf("request %v failed: %v", file, err)
 			}
 			return
 		}
 
-		url = proxy + indexFile
-
-		resp, err = client.Get(url)
-		if err != nil {
-			c.Status(502)
-			log.Errorf("request %v failed: %v", url, err)
-			return
-		}
-		c.Status(resp.StatusCode)
-		defer resp.Body.Close()
-		_, err = io.Copy(c.Writer, resp.Body)
-		if err != nil {
-			log.Errorf("request %v failed: %v", url, err)
-		}
+		log.Warnf("request %v failed: %v", file, err)
+		c.Status(502)
+		return
 	})
 }
 

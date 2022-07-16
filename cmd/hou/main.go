@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strings"
 
 	"github.com/argcv/stork/log"
 	"github.com/spf13/cobra"
@@ -61,6 +62,20 @@ func main() {
 				return err
 			}
 
+			proxyHeaders, err := cmd.Flags().GetStringSlice("proxy-header")
+			if err != nil {
+				return err
+			}
+
+			proxyHeadersMap := make(map[string]string)
+			for _, h := range proxyHeaders {
+				kv := strings.Split(h, ":")
+				if len(kv) != 2 {
+					return err
+				}
+				proxyHeadersMap[kv[0]] = kv[1]
+			}
+
 			h := hou.New()
 
 			h.Basedir = baseDir
@@ -69,6 +84,7 @@ func main() {
 			h.Port = port
 			h.Debug = debug
 			h.Proxy = proxy
+			h.ProxyHeaders = proxyHeadersMap
 
 			log.Infof("Starting:\n%v", h.ConfigTable())
 			return h.Run()
@@ -80,6 +96,7 @@ func main() {
 	args.PersistentFlags().String("base", ".", "base dir")
 	args.PersistentFlags().IntP("port", "p", 6789, "port")
 	args.PersistentFlags().String("proxy", "", "remote proxy")
+	args.PersistentFlags().StringSliceP("proxy-header", "H", []string{}, "proxy header")
 
 	args.PersistentFlags().BoolP("debug", "d", false, "debug mode")
 	args.PersistentFlags().BoolP("verbose", "v", false, "verbose log")
